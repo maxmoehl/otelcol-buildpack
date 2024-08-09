@@ -4,24 +4,17 @@ set -e
 
 BUILD_DIR="${1}"
 CACHE_DIR="${2}"
-DEPS_DIR="${3}"
-DEPS_IDX="${4}"
-
-TARGET_DIR="${DEPS_DIR}/${DEPS_IDX}"
+DEPS_DIR="${3}/${4}"
 
 log() {
   echo "[$(date -Iseconds)][otel-collector-buildpack] ${*}"
 }
 
-log "bin/supply BUILD_DIR=${BUILD_DIR} CACHE_DIR=${CACHE_DIR} DEPS_DIR=${DEPS_DIR} DEPS_IDX=${DEPS_IDX}"
-
-if [ ! -d "${TARGET_DIR}" ]; then
-	mkdir -p "${TARGET_DIR}"
-fi
+log "bin/supply BUILD_DIR=${BUILD_DIR} CACHE_DIR=${CACHE_DIR} DEPS_DIR=${DEPS_DIR}"
 
 log "downloading the collector binary"
 curl --proto '=https' -o "${CACHE_DIR}/otelcol.tgz" -fL https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.106.1/otelcol_0.106.1_linux_amd64.tar.gz
-tar -C "${TARGET_DIR}" -xf "${CACHE_DIR}/otelcol.tgz" otelcol
+tar -C "${BUILD_DIR}" -xf "${CACHE_DIR}/otelcol.tgz" otelcol
 
 log "writing configuration"
 if [ -z "${OTELCOL_CONFIG}" ]; then
@@ -29,17 +22,17 @@ if [ -z "${OTELCOL_CONFIG}" ]; then
   exit 1
 fi
 
-echo "${OTELCOL_CONFIG}" > "${TARGET_DIR}/config.yml"
+echo "${OTELCOL_CONFIG}" > "${BUILD_DIR}/config.yml"
 
 log "writing launch.yml"
 echo "---
 processes:
 - type: otel-collector
-  command: ${TARGET_DIR}/otelcol --config file:${TARGET_DIR}/config.yml
+  command: ${BUILD_DIR}/otelcol --config file:${BUILD_DIR}/config.yml
   platforms:
     cloudfoundry:
       sidecar_for:
       - web
-" > "${TARGET_DIR}/launch.yml"
+" > "${DEPS_DIR}/launch.yml"
 
 log "done!"
