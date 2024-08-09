@@ -1,0 +1,48 @@
+#!/bin/sh
+
+set -e
+
+BUILD_DIR="${1}"
+CACHE_DIR="${2}"
+DEPS_DIR="${3}"
+DEPS_IDX="${4}"
+
+TARGET_DIR="${DEPS_DIR}/${DEPS_IDX}"
+
+log() {
+  echo "[$(date -Iseconds)][otel-collector-buildpack] ${*}"
+}
+
+log "bin/supply BUILD_DIR=${BUILD_DIR} CACHE_DIR=${CACHE_DIR} DEPS_DIR=${DEPS_DIR} DEPS_IDX=${DEPS_IDX}"
+
+if [ ! -d "${TARGET_DIR}" ]; then
+	mkdir -p "${TARGET_DIR}"
+fi
+
+log "downloading the collector binary"
+pushd "${CACHE_DIR}" > /dev/null
+	curl --proto '=https' -fOL https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.106.1/otelcol_0.106.1_linux_amd64.tar.gz
+	tar -xvf otelcol_0.106.1_linux_amd64.tar.gz
+	mv ./otelcol "${TARGET_DIR}/"
+popd > /dev/null
+
+log "writing configuration"
+if [ -z "${OTELCOL_CONFIG}" ]; then
+  log "error: \$OTELCOL_CONFIG is not set or empty"
+  exit 1
+fi
+
+echo "${OTELCOL_CONFIG}" > "${TARGET_DIR}/config.yml"
+
+log "writing launch.yml"
+echo "---
+processes:
+- type: otel-collector
+  command: ${TARGET_DIR}/otelcol --config file:${TARGET_DIR}/config.yml
+  platforms:
+    cloudfoundry:
+      sidecar_for:
+      - web
+" > "${TARGET_DIR}/launch.yml"
+
+log "done!"
