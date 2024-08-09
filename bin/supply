@@ -20,11 +20,8 @@ if [ ! -d "${TARGET_DIR}" ]; then
 fi
 
 log "downloading the collector binary"
-pushd "${CACHE_DIR}" > /dev/null
-	curl --proto '=https' -fOL https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.106.1/otelcol_0.106.1_linux_amd64.tar.gz
-	tar -xvf otelcol_0.106.1_linux_amd64.tar.gz
-	mv ./otelcol "${TARGET_DIR}/"
-popd > /dev/null
+curl --proto '=https' -o "${CACHE_DIR}/otelcol.tgz" -fL https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.106.1/otelcol_0.106.1_linux_amd64.tar.gz
+tar -C "${TARGET_DIR}" -xf "${CACHE_DIR}/otelcol.tgz" otelcol
 
 log "writing configuration"
 if [ -z "${OTELCOL_CONFIG}" ]; then
