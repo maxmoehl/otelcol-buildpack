@@ -7,7 +7,7 @@ CACHE_DIR="${2}"
 DEPS_DIR="${3}/${4}"
 
 log() {
-  echo "[$(date -Iseconds)][otel-collector-buildpack] ${*}"
+  echo "[$(date -Iseconds)][otelcol-buildpack] ${*}"
 }
 
 log "bin/supply BUILD_DIR=${BUILD_DIR} CACHE_DIR=${CACHE_DIR} DEPS_DIR=${DEPS_DIR}"
@@ -27,7 +27,7 @@ echo "${OTELCOL_CONFIG}" > "${BUILD_DIR}/config.yml"
 log "writing launch.yml"
 echo "---
 processes:
-- type: otel-collector
+- type: otelcol
   command: ./otelcol --config file:./config.yml
   platforms:
     cloudfoundry:
