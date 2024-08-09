@@ -28,7 +28,7 @@ log "writing launch.yml"
 echo "---
 processes:
 - type: otel-collector
-  command: ${BUILD_DIR}/otelcol --config file:${BUILD_DIR}/config.yml
+  command: ./otelcol --config file:./config.yml
   platforms:
     cloudfoundry:
       sidecar_for:
